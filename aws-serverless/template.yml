@@ -1,0 +1,47 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: TODO_DESCRIPTION
+Parameters:
+  ApiStageName:
+    Type: String
+    Default: v1
+Resources:
+  Api:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Join ['-', [!Ref AWS::StackName, apigw]]
+      StageName: !Ref ApiStageName
+      Auth:
+        DefaultAuthorizer: NONE
+  Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: main
+      Runtime: go1.x
+      CodeUri: .
+      FunctionName: !Join ['-', [!Ref AWS::StackName, lambda]]
+      Description: TODO_DESCRIPTION
+      Timeout: 30
+      MemorySize: 128
+      Policies:
+      - AWSLambdaBasicExecutionRole
+      Environment:
+        Variables:
+          FOO: !Ref Foo
+      Events:
+        HttpPost:
+          Type: Api
+          Properties:
+            Path: /TODO_path
+            Method: post
+            RestApiId: !Ref Api
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join ['', [/aws/lambda/, !Ref Function]]
+      RetentionInDays: '90'
+Outputs:
+  WebhookUrl:
+    Description: API URL
+    Value: !Sub "https://${Api}.execute-api.${AWS::Region}.amazonaws.com/${ApiStageName}/TODO_path"

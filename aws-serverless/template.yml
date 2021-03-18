@@ -25,7 +25,7 @@ Resources:
       Timeout: 30
       MemorySize: 128
       Policies:
-      - AWSLambdaBasicExecutionRole
+        - AWSLambdaBasicExecutionRole
       Environment:
         Variables:
           FOO: !Ref Foo

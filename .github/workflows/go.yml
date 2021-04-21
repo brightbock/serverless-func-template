@@ -36,6 +36,12 @@ jobs:
         with:
           go-version: 1.16
 
+      - name: Setup Private Go/Git access
+        run: |
+          set -euxo pipefail
+          git config --global url."https://${{ secrets.REPO_SCOPED_TOKEN }}:x-oauth-basic@github.com/brightbock/".insteadOf "https://github.com/brightbock/"
+          go env -w "GOPRIVATE=github.com/brightbock/*"
+
       - name: Build
         run: cd function && go build -v ./...
 
@@ -45,3 +51,8 @@ jobs:
       - name: Coverage Report
         run: cd function && go tool cover -func="/tmp/coverage.out"
 
+      - name: Tidy Private Go/Git access
+        if: always()
+        run: |
+          set -euxo pipefail
+          git config --name-only --get-regexp 'url\.http.+@' | xargs -n 1 -I X git config --global --unset-all "X"
